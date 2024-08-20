@@ -1,7 +1,6 @@
 package de.shinjinjin.redstoneLampLink;
 
 import org.bukkit.ChatColor;
-import org.bukkit.Color;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.Lightable;
@@ -80,8 +79,6 @@ public class LampControlPlugin extends JavaPlugin implements Listener {
         return new BlockVector(x, y, z);
     }
 
-
-    @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
         List<String> completions = new ArrayList<>();
 
