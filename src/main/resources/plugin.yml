@@ -1,5 +1,5 @@
 name: RedstoneLampLink
-version: '1.1-SNAPSHOT'
+version: '1.1.1-SNAPSHOT'
 main: de.shinjinjin.redstoneLampLink.LampControlPlugin
 api-version: '1.21'
 author: Shin_Jin_Jin

@@ -404,37 +404,56 @@ public class LampControlPlugin extends JavaPlugin implements Listener {
                 return;
             }
         } else if (block.getType() == Material.REDSTONE_LAMP || isBulb(block)) {
-            boolean lampRemoved = false;
+            // Überprüfen, ob die Lampe zu einer Gruppe gehört
+            if (isLampInGroup(block)) {
+                // Falls die Lampe verlinkt ist, prüfe die Berechtigung
+                if (event.getPlayer().hasPermission("lampcontrol.remove")) {
+                    boolean lampRemoved = false;
 
-            if (event.getPlayer().hasPermission("lampcontrol.remove")) {
-                for (Map.Entry<String, List<BlockVector>> entry : lampNameToLocationsMap.entrySet()) {
-                    List<BlockVector> locations = entry.getValue();
-                    if (locations.remove(blockLocation)) {
-                        lampRemoved = true;
-                        if (locations.isEmpty()) {
-                            lampNameToLocationsMap.remove(entry.getKey());
+                    for (Map.Entry<String, List<BlockVector>> entry : lampNameToLocationsMap.entrySet()) {
+                        List<BlockVector> locations = entry.getValue();
+                        if (locations.remove(blockLocation)) {
+                            lampRemoved = true;
+                            if (locations.isEmpty()) {
+                                lampNameToLocationsMap.remove(entry.getKey());
+                            }
+                            try {
+                                int lampId = lampDAO.getLampId(entry.getKey());
+                                lampDAO.removeLamp(lampId); // Entferne die Lampe aus der Datenbank
+                            } catch (SQLException e) {
+                                getLogger().severe("Failed to remove lamp from database: " + e.getMessage());
+                                event.getPlayer().sendMessage(ChatColor.RED + "Failed to remove lamp from database.");
+                            }
+                            break;
                         }
-                        try {
-                            int lampId = lampDAO.getLampId(entry.getKey());
-                            lampDAO.removeLamp(lampId); // Entferne die Lampe aus der Datenbank
-                        } catch (SQLException e) {
-                            getLogger().severe("Failed to remove lamp from database: " + e.getMessage());
-                            event.getPlayer().sendMessage(ChatColor.RED + "Failed to remove lamp from database.");
-                        }
-                        break;
                     }
-                }
 
-                if (lampRemoved) {
-                    event.getPlayer().sendMessage(ChatColor.GREEN + "Linked lamp removed.");
+                    if (lampRemoved) {
+                        event.getPlayer().sendMessage(ChatColor.GREEN + "Linked lamp removed.");
+                    }
                 } else {
-                    event.getPlayer().sendMessage(ChatColor.AQUA + "Lamp was not part of any group.");
+                    // Wenn die Lampe verlinkt ist und der Spieler keine Berechtigung hat
+                    event.setCancelled(true);
+                    event.getPlayer().sendMessage(ChatColor.RED + "You don't have permission to remove this lamp!");
                 }
             } else {
-                event.setCancelled(true);
-                event.getPlayer().sendMessage(ChatColor.RED + "You don't have permission to remove this lamp!");
+                // Wenn die Lampe nicht verlinkt ist, erlaube das Abbauen
+                // Keine Aktion erforderlich, da das Ereignis nicht abgebrochen wird
             }
         }
+    }
+
+    // Methode, um zu prüfen, ob eine Lampe zu einer Gruppe gehört
+    private boolean isLampInGroup(Block block) {
+        BlockVector blockLocation = new BlockVector(block.getX(), block.getY(), block.getZ());
+
+        // Überprüfe, ob der Block in irgendeiner Gruppe enthalten ist
+        for (List<BlockVector> locations : lampNameToLocationsMap.values()) {
+            if (locations.contains(blockLocation)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private void removeLampGroup(String lampName, BlockVector lampLocation) {
