@@ -137,44 +137,44 @@ public class LampControlPlugin extends JavaPlugin implements Listener {
 
     private boolean handleLinkLampCommand(Player player, String[] args) {
         if (!player.hasPermission("lampcontrol.create")) {
-            player.sendMessage("You don't have permission to create linked lamps.");
+            player.sendMessage(ChatColor.RED + "You don't have permission to create linked lamps.");
             return true;
         }
 
         if (args.length < 2) {
-            player.sendMessage("Usage: /lamplink linklamp <lamp_name>");
+            player.sendMessage(ChatColor.GREEN + "Usage: /lamplink linklamp <lamp_name>");
             return true;
         }
 
         String lampName = args[1];
         Block targetBlock = player.getTargetBlock(null, 5);
 
-        if (targetBlock.getType() == Material.REDSTONE_LAMP) {
+        if (targetBlock.getType() == Material.REDSTONE_LAMP || isBulb(targetBlock)) {
             BlockVector lampLocation = targetBlock.getLocation().toVector().toBlockVector();
             String worldName = targetBlock.getWorld().getName();
 
             try {
                 int lampId = lampDAO.addLamp(lampName, worldName, lampLocation.getBlockX(), lampLocation.getBlockY(), lampLocation.getBlockZ());
-                player.sendMessage("Lamp linked with name: " + lampName + ". Now use /lamplink linkbutton <lamp_name> to link it with a button.");
+                player.sendMessage("Lamp linked with name: " + ChatColor.DARK_AQUA + lampName + ChatColor.WHITE +". Now use /lamplink linkbutton <lamp_name> to link it with a button.");
                 reloadMappings(player);
             } catch (SQLException e) {
-                player.sendMessage("Failed to link lamp: " + e.getMessage());
+                player.sendMessage("Failed to link lamp: "+ ChatColor.DARK_RED + e.getMessage());
                 getLogger().severe("Error linking lamp: " + e.getMessage());
             }
         } else {
-            player.sendMessage("You must look at a Redstone Lamp to link it.");
+            player.sendMessage(ChatColor.RED + "You must look at a Redstone Lamp or a Copper Bulb to link it.");
         }
         return true;
     }
 
     private boolean handleLinkButtonCommand(Player player, String[] args) {
         if (!player.hasPermission("lampcontrol.link")) {
-            player.sendMessage("You don't have permission to link buttons.");
+            player.sendMessage(ChatColor.RED + "You don't have permission to link buttons.");
             return true;
         }
 
         if (args.length < 2) {
-            player.sendMessage("Usage: /lamplink linkbutton <lamp_name>");
+            player.sendMessage(ChatColor.GREEN + "Usage: /lamplink linkbutton <lamp_name>");
             return true;
         }
 
@@ -194,18 +194,18 @@ public class LampControlPlugin extends JavaPlugin implements Listener {
                     buttonToLampsMap.computeIfAbsent(buttonLocation, k -> new ArrayList<>()).add(lampName);
                     lampNameToLocationsMap.computeIfAbsent(lampName, k -> new ArrayList<>()).add(buttonLocation);
 
-                    player.sendMessage("Button linked to lamp " + lampName + ".");
+                    player.sendMessage("Button linked to lamp " + ChatColor.DARK_AQUA + lampName + ".");
                     getLogger().info("Button linked to lamp " + lampName + " successfully.");
                     reloadMappings(player);
                 } else {
-                    player.sendMessage("Lamp with name " + lampName + " not found.");
+                    player.sendMessage("Lamp with name "+ ChatColor.RED + lampName + " not found.");
                 }
             } catch (SQLException e) {
-                player.sendMessage("Failed to link button: " + e.getMessage());
+                player.sendMessage("Failed to link button: " + ChatColor.DARK_RED + e.getMessage());
                 getLogger().severe("Error linking button: " + e.getMessage());
             }
         } else {
-            player.sendMessage("You must look at a button to link it.");
+            player.sendMessage(ChatColor.RED + "You must look at a button to link it.");
         }
         return true;
     }
@@ -213,7 +213,7 @@ public class LampControlPlugin extends JavaPlugin implements Listener {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (!(sender instanceof Player)) {
-            sender.sendMessage("Only players can use this command.");
+            sender.sendMessage(ChatColor.RED + "Only players can use this command.");
             return true;
         }
 
@@ -221,7 +221,7 @@ public class LampControlPlugin extends JavaPlugin implements Listener {
 
         if (command.getName().equalsIgnoreCase("lamplink")) {
             if (args.length < 1) {
-                player.sendMessage("Usage: /lamplink <subcommand> [args...]");
+                player.sendMessage( ChatColor.GREEN + "Usage: /lamplink <linklamp|linkbutton|reloadmapping|list>");
                 return true;
             }
 
@@ -236,7 +236,7 @@ public class LampControlPlugin extends JavaPlugin implements Listener {
                         reloadMappings(player);
                         return true;
                     } else {
-                        player.sendMessage("You don't have permission to reload mappings.");
+                        player.sendMessage(ChatColor.RED + "You don't have permission to reload mappings.");
                         return true;
                     }
                 case "list":
@@ -248,11 +248,14 @@ public class LampControlPlugin extends JavaPlugin implements Listener {
                         }
                         return true;
                     } else {
-                        player.sendMessage("You don't have permission to list links.");
+                        player.sendMessage(ChatColor.RED + "You don't have permission to list links.");
                         return true;
                     }
+                case "help":
+                    player.sendMessage(ChatColor.GREEN + "Usage: /lamplink <linklamp|linkbutton|reloadmapping|list>");
+                    return true;
                 default:
-                    player.sendMessage("Unknown subcommand. Usage: /lamplink <linklamp|linkbutton|reloadmapping|list> [args...]");
+                    player.sendMessage(ChatColor.GREEN + "Unknown subcommand. Usage: /lamplink <linklamp|linkbutton|reloadmapping|list> [args...]");
                     return true;
             }
         }
@@ -261,7 +264,7 @@ public class LampControlPlugin extends JavaPlugin implements Listener {
     }
     private void listLinkNames(CommandSender sender) {
         if (lampNameToLocationsMap.isEmpty()) {
-            sender.sendMessage("No lamp names found.");
+            sender.sendMessage(ChatColor.RED + "No lamp names found.");
             return;
         }
 
@@ -339,10 +342,10 @@ public class LampControlPlugin extends JavaPlugin implements Listener {
         try {
             // Load lamp and button data from the database
             loadLampAndButtonData();
-            sender.sendMessage("Lamp and button mappings have been reloaded successfully.");
+            sender.sendMessage(ChatColor.GREEN + "Lamp and button mappings have been reloaded successfully.");
             getLogger().info("Lamp and button mappings reloaded successfully.");
         } catch (Exception e) {
-            sender.sendMessage("Failed to reload lamp and button mappings: " + e.getMessage());
+            sender.sendMessage(ChatColor.RED + "Failed to reload lamp and button mappings: " + e.getMessage());
             getLogger().severe("Error reloading lamp and button mappings: " + e.getMessage());
         }
     }
@@ -361,7 +364,7 @@ public class LampControlPlugin extends JavaPlugin implements Listener {
                     if (lampLocations != null) {
                         for (BlockVector lampLocation : lampLocations) {
                             Block lampBlock = block.getWorld().getBlockAt(lampLocation.getBlockX(), lampLocation.getBlockY(), lampLocation.getBlockZ());
-                            if (lampBlock.getType() == Material.REDSTONE_LAMP) {
+                            if (lampBlock.getType() == Material.REDSTONE_LAMP || isBulb(lampBlock)) {
                                 BlockData blockData = lampBlock.getBlockData();
                                 if (blockData instanceof Lightable) {
                                     Lightable lightable = (Lightable) blockData;
@@ -391,19 +394,19 @@ public class LampControlPlugin extends JavaPlugin implements Listener {
             if (linkedLampNames != null && !linkedLampNames.isEmpty()) {
                 if (!event.getPlayer().hasPermission("lampcontrol.remove")) {
                     event.setCancelled(true);
-                    event.getPlayer().sendMessage("You don't have permission to remove this!");
+                    event.getPlayer().sendMessage(ChatColor.RED + "You don't have permission to remove this!");
                 } else {
                     // Remove the button group
                     int buttonId = lampDAO.getButtonId(blockLocation);
                     removeButtonGroup(blockLocation);
                     lampDAO.removeButton(buttonId); // Entferne den Button aus der Datenbank
-                    event.getPlayer().sendMessage("Linked button removed.");
+                    event.getPlayer().sendMessage(ChatColor.GREEN + "Linked button removed.");
                 }
             } else {
                 // If the button is not linked, allow breaking
                 return;
             }
-        } else if (block.getType() == Material.REDSTONE_LAMP) {
+        } else if (block.getType() == Material.REDSTONE_LAMP || isBulb(block)) {
             boolean lampRemoved = false;
 
             if (event.getPlayer().hasPermission("lampcontrol.remove")) {
@@ -419,20 +422,20 @@ public class LampControlPlugin extends JavaPlugin implements Listener {
                             lampDAO.removeLamp(lampId); // Entferne die Lampe aus der Datenbank
                         } catch (SQLException e) {
                             getLogger().severe("Failed to remove lamp from database: " + e.getMessage());
-                            event.getPlayer().sendMessage("Failed to remove lamp from database.");
+                            event.getPlayer().sendMessage(ChatColor.RED + "Failed to remove lamp from database.");
                         }
                         break;
                     }
                 }
 
                 if (lampRemoved) {
-                    event.getPlayer().sendMessage("Linked lamp removed.");
+                    event.getPlayer().sendMessage(ChatColor.GREEN + "Linked lamp removed.");
                 } else {
-                    event.getPlayer().sendMessage("Lamp was not part of any group.");
+                    event.getPlayer().sendMessage(ChatColor.AQUA + "Lamp was not part of any group.");
                 }
             } else {
                 event.setCancelled(true);
-                event.getPlayer().sendMessage("You don't have permission to remove this lamp!");
+                event.getPlayer().sendMessage(ChatColor.RED + "You don't have permission to remove this lamp!");
             }
         }
     }
@@ -493,6 +496,11 @@ public class LampControlPlugin extends JavaPlugin implements Listener {
     private boolean isButton(Block block) {
         // Prüft, ob der Block ein beliebiger Button-Typ ist
         return block != null && (block.getType().name().endsWith("_BUTTON") || block.getType().name().endsWith("_PLATE"));
+    }
+
+    private boolean isBulb(Block block) {
+        // Prüft, ob der Block ein beliebiger Button-Typ ist
+        return block != null && (block.getType().name().endsWith("_BULB"));
     }
 
 }
