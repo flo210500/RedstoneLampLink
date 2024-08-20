@@ -1,0 +1,25 @@
+name: RedstoneLampLink
+version: '1.0-SNAPSHOT'
+main: de.shinjinjin.redstoneLampLink.LampControlPlugin
+api-version: '1.21'
+commands:
+  lamplink:
+    description: Main command for lamp and button linking
+    usage: /lamplink <subcommand> [args...]
+    permission: lampcontrol.use
+permissions:
+  lampcontrol.create:
+    description: Allows a player to create linked lamps and buttons
+    default: op
+  lampcontrol.remove:
+    description: Allows a player to remove linked lamps and buttons
+    default: op
+  lampcontrol.link:
+    description: Allows a player to link buttons to lamps
+    default: op
+  lampcontrol.reload:
+    description: Allows a player to reload lamp and button mappings
+    default: op
+  lampcontrol.list:
+    description: Allows a player to list lamp and button links
+    default: op
