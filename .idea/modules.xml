@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/lampcontrol.iml" filepath="$PROJECT_DIR$/lampcontrol.iml" />
+      <module fileurl="file://$PROJECT_DIR$/RedstoneLampLink.iml" filepath="$PROJECT_DIR$/RedstoneLampLink.iml" />
     </modules>
   </component>
 </project>
